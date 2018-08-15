@@ -1,0 +1,24 @@
+{
+  "name": "master-minds-server",
+  "version": "0.0.0",
+  "description": "Master Minds - Quiz Show - Server",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/journeymanavi/master-minds.git"
+  },
+  "author": "Avinash Agrawal",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/journeymanavi/master-minds/issues"
+  },
+  "homepage": "https://github.com/journeymanavi/master-minds#readme",
+  "dependencies": {
+    "express": "^4.16.3",
+    "socket.io": "^2.1.1"
+  }
+}
