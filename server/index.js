@@ -40,11 +40,11 @@ const registerQuizMaster = (password, socket) => {
   if (!quizState.quizMasterLoggedIn) {
     if (password === 'passw0rd') {
       quizState.quizMasterLoggedIn = true;
-      quizState.quizMasterSocket = socket.id;
+      quizState.quizMasterSocket = socket;
 
       socket.on(EVENT_QUIZ_MASTER_ACTION, action => {
-        console.log(`Received Quiz Master Action: ${action}`);
-        switch(action) {
+        console.log(`Received Quiz Master Action: ${JSON.stringify(action, null, 2)}`);
+        switch(action.name) {
           case ACTION_SHOW_SCORES:
           quizState.quizDisplaySocket.emit(
             EVENT_UPDATE_VIEW,
@@ -82,7 +82,7 @@ const registerQuizMaster = (password, socket) => {
 
 const connectDisplay = socket => {
   if (!quizState.quizDisplayConnected) {
-    quizState.quizDisplaySocket = socket.id;
+    quizState.quizDisplaySocket = socket;
     socket.emit(
       EVENT_UPDATE_VIEW,
       { name: VIEW_QUIZ_DISPLAY_HOME }
@@ -94,13 +94,12 @@ const connectDisplay = socket => {
 };
 
 const handleDisconnection = socket => {
-  const disconnectingSocket = socket.id;
-  if (disconnectingSocket === quizState.quizMasterSocket) {
+  if (socket === quizState.quizMasterSocket) {
     quizState.quizMasterLoggedIn = false;
     quizState.quizDisplaySocket = undefined;
     console.log('Quiz Master disconnected!');
   }
-  else if (disconnectingSocket === quizState.quizDisplaySocket) {
+  else if (socket === quizState.quizDisplaySocket) {
     quizState.quizDisplayConnected = false;
     quizState.quizDisplaySocket = undefined;
     console.log('Quiz Display disconnected!');
