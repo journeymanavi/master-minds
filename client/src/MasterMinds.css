@@ -8,6 +8,10 @@ html, body {
   position: relative;
 }
 
+h2, h3 {
+  font-weight: 400;
+}
+
 #master-minds {
   font-family: 'Open Sans', sans-serif;
   text-align: center;
@@ -28,6 +32,23 @@ html, body {
   display: flex;
   flex: 1;
   flex-direction: column;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.quiz-master-console {
+  display: flex;
+  flex-direction: row;
+}
+
+.console-cluster {
+  border: 1px solid gray;
+  border-radius: 5px;
+  margin: 1em;
+  background-color: lightgray;
+  overflow: auto;
+  flex: 1;
+  padding: 0.25em;
 }
 
 button {

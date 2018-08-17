@@ -20,65 +20,153 @@ const EVENT_REGISTER_QUIZ_MASTER = 'EVENT_REGISTER_QUIZ_MASTER';
 const EVENT_CONNECT_QUIZ_DISPLAY = 'EVENT_CONNECT_QUIZ_DISPLAY';
 const EVENT_QUIZ_MASTER_ACTION = 'EVENT_QUIZ_MASTER_ACTION';
 
-const ACTION_SHOW_SCORES = 'ACTION_SHOW_SCORES';
-const ACTION_SHOW_NEXT_QUESTION = 'ACTION_SHOW_NEXT_QUESTION';
-const ACTION_ADD_TEAM = 'ACTION_ADD_TEAM';
-const ACTION_EDIT_TEAM = 'ACTION_EDIT_TEAM';
-const ACTION_DELETE_TEAM = 'ACTION_DELETE_TEAM';
-const ACTION_START_ROUND = 'ACTION_START_ROUND';
-const ACTION_END_ROUND = 'ACTION_END_ROUND';
+const ACTION_SET_ACTIVE_ROUND = 'ACTION_SET_ACTIVE_ROUND';
 const ACTION_SET_ACTIVE_TEAM = 'ACTION_SET_ACTIVE_TEAM';
-const ACTION_ANSWER_CORRECT = 'ACTION_ANSWER_CORRECT';
-const ACTION_ANSWER_WRONG = 'ACTION_ANSWER_WRONG';
-const ACTION_QUESTION_PASSED = 'ACTION_QUESTION_PASSED';
-const ACTION_QUESTION_TIME_UP = 'ACTION_QUESTION_TIME_UP';
+const ACTION_SHOW_NEXT_QUESTION = 'ACTION_SHOW_NEXT_QUESTION';
+const ACTION_SET_ANSWER_CORRECT = 'ACTION_SET_ANSWER_CORRECT';
+const ACTION_SET_ANSWER_WRONG = 'ACTION_SET_ANSWER_WRONG';
+const ACTION_SET_QUESTION_PASSED = 'ACTION_SET_QUESTION_PASSED';
+const ACTION_SHOW_SCORES = 'ACTION_SHOW_SCORES';
+const ACTION_UPDATE_QUIZ_DISPLAY = 'ACTION_UPDATE_QUIZ_DISPLAY';
 
 const VIEW_QUIZ_MASTER_CONSOLE = 'VIEW_QUIZ_MASTER_CONSOLE';
 const VIEW_QUIZ_DISPLAY_HOME = 'VIEW_QUIZ_DISPLAY_HOME';
-const VIEW_QUIZ_DISPLAY_SCORES = 'VIEW_QUIZ_DISPLAY_HOME';
+const VIEW_QUIZ_DISPLAY_SCORES = 'VIEW_QUIZ_DISPLAY_SCORES';
 const VIEW_QUIZ_DISPLAY_QUESTION = 'VIEW_QUIZ_DISPLAY_QUESTION';
 
+const ROUND_NONE = 'ROUND_NONE';
+const ROUND_GK = 'ROUND_GK';
+const ROUND_AV = 'ROUND_AV';
+const ROUND_RF = 'ROUND_RF';
+
+const TEAM_NONE = 'TEAM_NONE';
+const TEAM_A = 'TEAM_A';
+const TEAM_B = 'TEAM_B';
+const TEAM_C = 'TEAM_C';
+
+const Q_UNANSWERED = 'Q_UNANSWERED';
+const Q_ANSWER_CORRECT = 'Q_ANSWER_CORRECT';
+const Q_ANSWER_WRONG = 'Q_ANSWER_WRONG';
+const Q_PASSED = 'Q_PASSED';
+
+let quizMasterLoggedIn = false;
+let quizMasterSocket = undefined;
+let quizDisplayConnected = false;
+let quizDisplaySocket = undefined;
+
 const quizState = {
-  quizMasterLoggedIn: false,
-  quizMasterSocket: undefined,
-  quizDisplayConnected: false,
-  quizDisplaySocket: undefined
+  activeRound: ROUND_NONE,
+  activeTeam: TEAM_NONE,
+  activeQuestion: {},
+  questionCount: 0,
+  scores: {
+    [TEAM_A]: 0,
+    [TEAM_B]: 0,
+    [TEAM_C]: 0
+  }
+};
+
+const getNextQuestion = activeState => {
+  return {
+    text: `Question ${Date.now()}`,
+    outcome: Q_UNANSWERED
+  };
 };
 
 const registerQuizMaster = (password, socket) => {
   console.log('Registering Quiz Master');
-  if (!quizState.quizMasterLoggedIn) {
+  if (!quizMasterLoggedIn) {
     if (password === 'passw0rd') {
-      quizState.quizMasterLoggedIn = true;
-      quizState.quizMasterSocket = socket;
+      quizMasterLoggedIn = true;
+      quizMasterSocket = socket;
 
       socket.on(EVENT_QUIZ_MASTER_ACTION, action => {
         console.log(`Received Quiz Master Action: ${JSON.stringify(action, null, 2)}`);
         switch(action.name) {
-          case ACTION_SHOW_SCORES:
-          quizState.quizDisplaySocket.emit(
-            EVENT_UPDATE_VIEW,
-            { name: VIEW_QUIZ_DISPLAY_SCORES }
-          );
+          case ACTION_SET_ACTIVE_ROUND:
+          quizState.activeRound = action.round;
+          quizState.questionCount = 0;
+          quizState.activeQuestion = {};
+          break;
+
+          case ACTION_SET_ACTIVE_TEAM:
+          quizState.activeTeam = action.team;
+          quizState.questionCount = 0;
+          quizState.activeQuestion = {};
           break;
 
           case ACTION_SHOW_NEXT_QUESTION:
-          quizState.quizDisplaySocket.emit(
+          quizState.activeQuestion = getNextQuestion(quizState.activeRound);
+          quizState.questionCount++;
+          quizDisplaySocket.emit(
             EVENT_UPDATE_VIEW,
             {
-              name: VIEW_QUIZ_DISPLAY_QUESTION,
-              question: {
-                text: `Some Question - ${Date.now()}`
-              }
+              view: VIEW_QUIZ_DISPLAY_QUESTION,
+              quizState
+            }
+          );
+          break;
+
+          case ACTION_SET_ANSWER_CORRECT:
+          quizState.activeQuestion.outcome = Q_ANSWER_CORRECT;
+          quizDisplaySocket.emit(
+            EVENT_UPDATE_VIEW,
+            {
+              view: VIEW_QUIZ_DISPLAY_QUESTION,
+              quizState
+            }
+          );
+          break;
+
+          case ACTION_SET_ANSWER_WRONG:
+          quizState.activeQuestion.outcome = Q_ANSWER_WRONG;
+          quizDisplaySocket.emit(
+            EVENT_UPDATE_VIEW,
+            {
+              view: VIEW_QUIZ_DISPLAY_QUESTION,
+              quizState
+            }
+          );
+          break;
+
+          case ACTION_SET_QUESTION_PASSED:
+          quizState.activeQuestion.outcome = Q_PASSED;
+          quizDisplaySocket.emit(
+            EVENT_UPDATE_VIEW,
+            {
+              view: VIEW_QUIZ_DISPLAY_QUESTION,
+              quizState
+            }
+          );
+          break;
+
+          case ACTION_SHOW_SCORES:
+          console.log('In ACTION_SHOW_SCORES');
+          quizDisplaySocket.emit(
+            EVENT_UPDATE_VIEW,
+            {
+              view: VIEW_QUIZ_DISPLAY_SCORES,
+              quizState
             }
           );
           break;
         }
+
+        socket.emit(
+          EVENT_UPDATE_VIEW,
+          {
+            view: VIEW_QUIZ_MASTER_CONSOLE,
+            quizState
+          }
+        );
       });
 
       socket.emit(
         EVENT_UPDATE_VIEW,
-        { name: VIEW_QUIZ_MASTER_CONSOLE }
+        {
+          view: VIEW_QUIZ_MASTER_CONSOLE,
+          quizState
+        }
       );
     }
     else {
@@ -91,11 +179,14 @@ const registerQuizMaster = (password, socket) => {
 }
 
 const connectDisplay = socket => {
-  if (!quizState.quizDisplayConnected) {
-    quizState.quizDisplaySocket = socket;
+  if (!quizDisplayConnected) {
+    quizDisplaySocket = socket;
     socket.emit(
       EVENT_UPDATE_VIEW,
-      { name: VIEW_QUIZ_DISPLAY_HOME }
+      {
+        view: VIEW_QUIZ_DISPLAY_HOME,
+        quizState
+      }
     );
   }
   else {
@@ -104,14 +195,14 @@ const connectDisplay = socket => {
 };
 
 const handleDisconnection = socket => {
-  if (socket === quizState.quizMasterSocket) {
-    quizState.quizMasterLoggedIn = false;
-    quizState.quizDisplaySocket = undefined;
+  if (socket === quizMasterSocket) {
+    quizMasterLoggedIn = false;
+    quizMasterSocket = undefined;
     console.log('Quiz Master disconnected!');
   }
-  else if (socket === quizState.quizDisplaySocket) {
-    quizState.quizDisplayConnected = false;
-    quizState.quizDisplaySocket = undefined;
+  else if (socket === quizDisplaySocket) {
+    quizDisplayConnected = false;
+    quizDisplaySocket = undefined;
     console.log('Quiz Display disconnected!');
   }
   else {
@@ -141,5 +232,5 @@ webSocketServer.on('connection', socket => {
 
 httpServer.listen(
   9000,
-  _ => console.log('Master Minds Server listening on port 3000')
+  _ => console.log('Master Minds Server listening on port 9000')
 );
