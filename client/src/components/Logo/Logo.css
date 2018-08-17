@@ -1,0 +1,11 @@
+.logo {
+  font-size: 4em;
+}
+
+.logo > span:first-child {
+  font-weight: 800;
+}
+
+.logo > span:last-child {
+  font-weight: 100;
+}
