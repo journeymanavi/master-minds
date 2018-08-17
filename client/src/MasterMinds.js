@@ -4,7 +4,7 @@ import './MasterMinds.css';
 
 import Logo from './components/Logo/Logo';
 
-const WS_ENDPOINT = 'ws://127.0.0.1:9000';
+const WS_ENDPOINT = 'ws://192.168.43.215:9000';
 
 const EVENT_ERROR = 'EVENT_ERROR';
 const EVENT_UPDATE_VIEW = 'EVENT_UPDATE_VIEW';
@@ -220,9 +220,9 @@ class MasterMinds extends Component {
       case VIEW_QUIZ_MASTER_CONSOLE:
       viewToRender = <React.Fragment>
         <h2>Quiz Master Console</h2>
-        <button onClick={this.updateDisplay()}>
+        {/* <button onClick={this.updateDisplay}>
           Update Quiz Display
-        </button>
+        </button> */}
         <div className='quiz-master-console'>
 
           <div className='console-cluster'>
