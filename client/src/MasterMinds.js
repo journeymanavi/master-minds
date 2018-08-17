@@ -6,27 +6,31 @@ import Logo from './components/Logo/Logo';
 
 const WS_ENDPOINT = 'ws://127.0.0.1:9000';
 
-const EVENT_ERROR = 'QUIZ_ERROR';
-const EVENT_UPDATE_VIEW = 'UPDATE_VIEW';
-const EVENT_REGISTER_QUIZ_MASTER = 'REGISTER_QUIZ_MASTER';
-const EVENT_CONNECT_QUIZ_DISPLAY = 'CONNECT_QUIZ_DISPLAY';
-const EVENT_QUIZ_MASTER_ACTION = 'QUIZ_MASTER_ACTION';
+const EVENT_ERROR = 'EVENT_ERROR';
+const EVENT_UPDATE_VIEW = 'EVENT_UPDATE_VIEW';
+const EVENT_REGISTER_QUIZ_MASTER = 'EVENT_REGISTER_QUIZ_MASTER';
+const EVENT_CONNECT_QUIZ_DISPLAY = 'EVENT_CONNECT_QUIZ_DISPLAY';
+const EVENT_QUIZ_MASTER_ACTION = 'EVENT_QUIZ_MASTER_ACTION';
 
-const ACTION_SHOW_SCORES = "SHOW_SCORES";
-const ACTION_SHOW_NEXT_QUESTION = "SHOW_NEXT_QUESTION";
+const ACTION_SHOW_SCORES = 'ACTION_SHOW_SCORES';
+const ACTION_SHOW_NEXT_QUESTION = 'ACTION_SHOW_NEXT_QUESTION';
+const ACTION_ADD_TEAM = 'ACTION_ADD_TEAM';
 
-const VIEW_WELCOME = 'WELCOME';
-const VIEW_ERROR = 'ERROR';
-const VIEW_PASSWORD = 'PASSWORD';
-const VIEW_QUIZ_MASTER_CONSOLE = 'QUIZ_MASTER_CONSOLE';
-const VIEW_QUIZ_DISPLAY_HOME = 'QUIZ_DISPLAY_HOME';
-const VIEW_QUIZ_DISPLAY_SCORES = 'QUIZ_DISPLAY_SCORES';
-const VIEW_QUIZ_DISPLAY_QUESTION = 'QUIZ_DISPLAY_QUESTION';
+const VIEW_WELCOME = 'VIEW_WELCOME';
+const VIEW_ERROR = 'VIEW_ERROR';
+const VIEW_PASSWORD = 'VIEW_PASSWORD';
+const VIEW_QUIZ_MASTER_CONSOLE = 'VIEW_QUIZ_MASTER_CONSOLE';
+const VIEW_QUIZ_DISPLAY_HOME = 'VIEW_QUIZ_DISPLAY_HOME';
+const VIEW_QUIZ_DISPLAY_SCORES = 'VIEW_QUIZ_DISPLAY_HOME';
+const VIEW_QUIZ_DISPLAY_QUESTION = 'VIEW_QUIZ_DISPLAY_QUESTION';
 
 class MasterMinds extends Component {
   constructor() {
     super();
     this.state = {
+      teamName: '',
+      teamMembers: '',
+      activeTeamName: '',
       password: 'passw0rd',
       view: { name: VIEW_WELCOME }
     }
@@ -79,6 +83,34 @@ class MasterMinds extends Component {
     );
   };
 
+  handleInput = (event, inputField) => {
+    this.setState({
+      [inputField]: event.target.value
+    });
+  };
+
+  addTeam = () => {
+    this.socket.emit(
+      EVENT_QUIZ_MASTER_ACTION,
+      {
+        name: ACTION_ADD_TEAM,
+        teamName: this.state.teamName,
+        teamMembers: this.state.teamMembers
+      }
+    );
+  };
+
+  setActiveTeam = () => {
+    this.socket.emit(
+      EVENT_QUIZ_MASTER_ACTION,
+      {
+        name: ACTION_ADD_TEAM,
+        teamName: this.state.teamName,
+        teamMembers: this.state.teamMembers
+      }
+    );
+  };
+
   render() {
     const { view } = this.state;
 
@@ -92,12 +124,11 @@ class MasterMinds extends Component {
 
       case VIEW_WELCOME:
       viewToRender = <React.Fragment>
-        <Logo />
         <div>
-          <button className='quiz-master-button' onClick={this.showPassword}>
+          <button className='btn-large' onClick={this.showPassword}>
             Join as Quiz Master
           </button>
-          <button className='quiz-display-button' onClick={this.connectDisplay}>
+          <button className='btn-large' onClick={this.connectDisplay}>
             Connect as Quiz Display
           </button>
         </div>
@@ -106,7 +137,6 @@ class MasterMinds extends Component {
 
       case VIEW_PASSWORD:
       viewToRender = <React.Fragment>
-        <Logo />
         <div className='quiz-master-password'>
           <form onSubmit={this.registerQuizMaster}>
             <input
@@ -114,19 +144,48 @@ class MasterMinds extends Component {
               value={this.state.password}
               onChange={this.handlePasswordChange}
             />
-            <button type='submit'>Start Quiz</button>
+            <button className='btn-large' type='submit'>Start Quiz</button>
           </form>
         </div>
       </React.Fragment>;
       break;
 
+
+
       case VIEW_QUIZ_MASTER_CONSOLE:
       viewToRender = <React.Fragment>
-        Quiz Master Console
+
+        <form onSubmit={this.addTeam}>
+          <label>
+            Team Name
+            <input
+              type='text'
+              value={this.state.teamName}
+              onChange={e => this.handleInput(e, 'teamName')}
+            />
+          </label>
+          <label>
+            Team Members (comma separated list)
+            <input
+              type='text'
+              value={this.state.teamMembers}
+              onChange={e => this.handleInput(e, 'teamMembers')}
+            />
+          </label>
+          <button type='submit'>Add Team</button>
+        </form>
+
+        <button onClick={this.showScores}>Set Team A Active</button>
+        <button onClick={this.showScores}>Set Team B Active</button>
+        <button onClick={this.showScores}>Set Team C Active</button>
+
         <button onClick={this.showScores}>Show Scores</button>
+
         <button onClick={this.showNextQuestion}>Ask Question</button>
       </React.Fragment>
       break;
+
+
 
       case VIEW_QUIZ_DISPLAY_HOME:
       viewToRender = <div>Quiz Display Home</div>
@@ -150,7 +209,10 @@ class MasterMinds extends Component {
 
     return (
       <div className='view'>
-        {viewToRender}
+        <Logo />
+        <div className='view-body'>
+          {viewToRender}
+        </div>
       </div>
     );
   }

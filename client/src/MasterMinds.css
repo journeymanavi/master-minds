@@ -24,13 +24,16 @@ html, body {
   align-items: center;
 }
 
+.view-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
 button {
   outline: none;
-  padding: 0.6em 1em;
   font-family: 'Open Sans', sans-serif;
   font-weight: 100;
-  font-size: 1.5em;
-  margin: 3em;
   color: white;
   background-color: #3a3a3a;
   border: none;
@@ -39,6 +42,14 @@ button {
   transition-property: all;
   transition-duration: 200ms;
   transition-timing-function: ease-in-out;
+  margin: 1em;
+  padding: 0.5em;
+}
+
+button.btn-large {
+  padding: 0.6em 1em;
+  font-size: 1.5em;
+  margin: 3em;
 }
 
 button:hover {
