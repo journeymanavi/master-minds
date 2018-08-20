@@ -1,6 +1,9 @@
 const express = require('express');
 const http = require('http');
 const socketIO = require('socket.io');
+const gkQuestions = require('./gk-questions.json');
+const avQuestions = require('./av-questions.json');
+const rfQuestions = require('./rf-questions.json');
 
 const app = express();
 app.get(
@@ -66,9 +69,37 @@ const quizState = {
   }
 };
 
-const getNextQuestion = activeState => {
+const qBank = {
+  [ROUND_GK]: {
+    index: 0,
+    q: gkQuestions
+  },
+  [ROUND_AV]: {
+    index: 0,
+    q: avQuestions
+  },
+  [ROUND_RF]: {
+    index: 0,
+    q: rfQuestions
+  },
+}
+const gkQIndex = 0;
+const avQIndex = 0;
+const rfQIndex = 0;
+const getNextQuestion = round => {
+  roundQs = qBank[round];
+  const {
+    question,
+    answer,
+    type,
+    src
+  } = roundQs.q[roundQs.index];
+  roundQs.index++;
   return {
-    text: `Question ${Date.now()}`,
+    text: question,
+    answer: answer,
+    type,
+    src,
     outcome: Q_UNANSWERED
   };
 };
@@ -109,6 +140,7 @@ const registerQuizMaster = (password, socket) => {
 
           case ACTION_SET_ANSWER_CORRECT:
           quizState.activeQuestion.outcome = Q_ANSWER_CORRECT;
+          quizState.scores[quizState.activeTeam] += 10;
           quizDisplaySocket.emit(
             EVENT_UPDATE_VIEW,
             {

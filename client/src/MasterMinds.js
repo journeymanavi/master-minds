@@ -4,7 +4,7 @@ import './MasterMinds.css';
 
 import Logo from './components/Logo/Logo';
 
-const WS_ENDPOINT = 'ws://192.168.43.215:9000';
+const WS_ENDPOINT = 'http://127.0.0.1:9000';
 
 const EVENT_ERROR = 'EVENT_ERROR';
 const EVENT_UPDATE_VIEW = 'EVENT_UPDATE_VIEW';
@@ -299,6 +299,13 @@ class MasterMinds extends Component {
       case VIEW_QUIZ_DISPLAY_QUESTION:
       viewToRender = <React.Fragment>
         <div>{activeQuestion.text || null}</div>
+        <div>{activeQuestion.answer || null}</div>
+        <div>{activeQuestion.type || null}</div>
+        <div>{activeQuestion.src || null}</div>
+        {activeQuestion.type === 'image'
+         ? activeQuestion.src ? <img src={activeQuestion.src} /> : null
+         : activeQuestion.src ? <audio src={activeQuestion.src} /> : null
+        }
         <div className='display-footer'>
           <span class-name='active-round'>Round: {displayText[activeRound]}</span>
           <span class-name='active-team'>Playing: {displayText[activeTeam]}</span>
