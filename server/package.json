@@ -19,6 +19,6 @@
   "homepage": "https://github.com/journeymanavi/master-minds#readme",
   "dependencies": {
     "express": "^4.16.3",
-    "socket.io": "^2.1.1"
+    "socket.io": "^2.5.0"
   }
 }
